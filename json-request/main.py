@@ -1,22 +1,17 @@
 import uvicorn
 from fastapi import FastAPI
-from pydantic import BaseModel, Field
-from typing import Optional
+from models import Event, VerdictResponse, Verdict
 
 app = FastAPI()
 
 
-class JsonItem(BaseModel):
-    name: str
-    email: str
-    description: Optional[str] = None
-    value: float = Field(..., gt=0, description="Nu poti sa ai valoare 0 (sa n-ai valoare)")
+@app.post('/scan_file', response_model=VerdictResponse)
+async def scan_file(item: Event):
+    file = Verdict(hash=item.file.file_hash, risk_level=-1)
+    process = Verdict(hash=item.last_access.hash, risk_level=-1)
+    response = VerdictResponse(file=file, process=process)
 
-
-@app.post('/jsonItem')
-async def create_item(item: JsonItem):
-    print('Json is: ')
-    print(item)
+    return response
 
 
 if __name__ == '__main__':
